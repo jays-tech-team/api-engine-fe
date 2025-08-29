@@ -11,7 +11,7 @@ import { TransformInterceptor } from './shared/interceptors/transform.intercepto
 
 async function bootstrap() {
   const logger = new AppLogger('Bootstrap');
-  
+
   try {
     const app = await NestFactory.create<NestFastifyApplication>(
       AppModule,
@@ -25,7 +25,9 @@ async function bootstrap() {
 
     // CORS configuration
     app.enableCors({
-      origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+      origin: process.env.ALLOWED_ORIGINS?.split(',') || [
+        'http://localhost:3003',
+      ],
       credentials: true,
     });
 
@@ -42,14 +44,14 @@ async function bootstrap() {
     );
 
     // Global exception filter
-    app.useGlobalFilters(new GlobalExceptionFilter());
+    // app.useGlobalFilters(new GlobalExceptionFilter());
 
     // Global interceptor for response transformation
     app.useGlobalInterceptors(new TransformInterceptor());
 
     const port = process.env.PORT || 3003;
     await app.listen(port, '0.0.0.0');
-    
+
     logger.log(`🚀 Application is running on: http://localhost:${port}/api/v1`);
     logger.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   } catch (error) {
