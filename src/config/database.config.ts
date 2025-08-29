@@ -18,6 +18,7 @@ export const databaseConfig = (): DatabaseConfig => ({
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD || 'postgres',
     database: process.env.DB_DATABASE || 'jays_core',
+    entities: [__dirname + '/../**/*.entity.pg{.ts,.js}'],
     synchronize: false,
     logging: process.env.NODE_ENV === 'development',
     ssl:
@@ -31,10 +32,11 @@ export const databaseConfig = (): DatabaseConfig => ({
   read_mongo: {
     name: 'mongo',
     type: 'mongodb',
-    url: process.env.MONGO_URL || 'mongodb://localhost:27017/jays_core',
-    database: process.env.MONGO_DATABASE || 'jays_core',
+    url: process.env.MONGODB_URI || 'mongodb://localhost:27017/jays_core',
+    database: process.env.MONGO_DB || 'jays_core',
     synchronize: false,
     logging: process.env.NODE_ENV === 'development',
+    // entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   },
   redis: {
     host: process.env.REDIS_HOST || 'localhost',
