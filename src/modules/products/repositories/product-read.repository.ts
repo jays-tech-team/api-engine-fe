@@ -66,33 +66,8 @@ export class ProductReadRepository {
       .take(limit)
       .getManyAndCount();
 
-    // Optional tree info, only when category filter is present
-    let CategoryData: Record<string, unknown> | null | undefined = undefined;
-    if (filter.category_slug || filter.category_uuid) {
-      const treeQb = this.repo.manager
-        .createQueryBuilder()
-        .select('t."TreeInfo"', 'TreeInfo')
-        .from('public_view_category_tree', 't');
-
-      if (filter.category_slug) {
-        treeQb.where('t."CategorySlug" = :category_slug', {
-          category_slug: filter.category_slug,
-        });
-      } else if (filter.category_uuid) {
-        treeQb.where('t."CategoryUuid" = :category_uuid', {
-          category_uuid: filter.category_uuid,
-        });
-      }
-
-      const row = (await treeQb.getRawOne<{
-        TreeInfo: Record<string, unknown> | null;
-      }>()) as { TreeInfo: Record<string, unknown> | null } | undefined;
-      CategoryData = row?.TreeInfo ?? null;
-    }
-
     return {
       data,
-      ...(CategoryData !== undefined ? { CategoryData } : {}),
       meta: {
         total,
         page,

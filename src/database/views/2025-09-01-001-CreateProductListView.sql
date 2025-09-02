@@ -1,7 +1,7 @@
 DROP VIEW IF EXISTS public_view_products_listing_page;
 CREATE OR REPLACE VIEW public_view_products_listing_page AS
 SELECT 
-	  p.product_uuid AS "ProductUuid",
+	p.product_uuid AS "ProductUuid",
     p.product_name AS "ProductName",
     p.product_slug AS "ProductSlug",
     p.regular_price AS "RegularPrice",

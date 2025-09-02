@@ -1,155 +1,115 @@
-DROP VIEW IF EXISTS public_view_category_tree CASCADE;
-DROP FUNCTION IF EXISTS category_children(integer);
+-- Drop existing function and view if any
+DROP FUNCTION IF EXISTS category_children_full(integer);
+DROP VIEW IF EXISTS public_view_category_tree;
 
-
-CREATE OR REPLACE FUNCTION category_children(p_parent_id integer)
-RETURNS jsonb
+-- Recursive function using CTE to guarantee ordering
+CREATE OR REPLACE FUNCTION category_children_full(p_parent_id integer)
+RETURNS json
 LANGUAGE plpgsql
 AS $$
 DECLARE
-  res jsonb;
+    res json;
 BEGIN
-  SELECT COALESCE(
-    jsonb_agg(
-      jsonb_build_object(
-        'CategoryId', c.category_id,
-        'CategoryUuid', c.category_uuid,
-        'CategoryName', c.category_name,
-        'CategorySlug', c.category_slug,
-        'ImageUrl', c.image_url,
-        'ParentId', c.parent_id,
-        'Depth', c.depth,
-        'DisplayOrder', c.display_order,
-        'IsHidden', c.is_hidden,
-        'Status', c.status,
-        'PathSlugs', c.path_slugs,
-        'PathNames', c.path_names,
-        'PathIds', c.path_ids,
-        'CountProducts', c.count_products,
-        'IconUrl', c.icon_url,
-        'ImageAltText', c.image_alt_text,
-        'IconAltText', c.icon_alt_text,
-        'MobileImageUrl', c.mobile_image_url,
-        'MobileIconUrl', c.mobile_icon_url,
-        'Description', c.description,
-        'Child', category_children(c.category_id)   
-      )
-    ),
-    '[]'::jsonb
-  )
-  INTO res
-  FROM product_categories c
-  WHERE c.parent_id = p_parent_id
-    AND c.status = 'active'
-    AND c.deleted_at IS NULL;
+    WITH RECURSIVE tree AS (
+        SELECT
+            c.category_id,
+            c.category_uuid,
+            c.category_name,
+            c.category_slug,
+            c.image_url,
+            c.parent_id,
+            c.depth,
+            c.display_order,
+            c.is_hidden,
+            c.status,
+            c.path_slugs,
+            c.path_names,
+            c.path_ids,
+            c.count_products,
+            c.icon_url,
+            c.image_alt_text,
+            c.icon_alt_text,
+            c.mobile_image_url,
+            c.mobile_icon_url,
+            c.description
+        FROM product_categories c
+        WHERE c.parent_id = p_parent_id
+          AND c.status = 'active'
+          AND c.deleted_at IS NULL
+        ORDER BY c.display_order, c.category_id
+    )
+    SELECT COALESCE(
+        json_agg(
+            json_build_object(
+                'CategoryUuid', t.category_uuid,
+                'CategoryName', t.category_name,
+                'CategorySlug', t.category_slug,
+                'ImageUrl', t.image_url,
+                'Depth', t.depth,
+                'DisplayOrder', t.display_order,
+                'IsHidden', t.is_hidden,
+                'Status', t.status,
+                'PathSlugs', t.path_slugs,
+                'PathNames', t.path_names,
+                'CountProducts', t.count_products,
+                'IconUrl', t.icon_url,
+                'ImageAltText', t.image_alt_text,
+                'IconAltText', t.icon_alt_text,
+                'MobileImageUrl', t.mobile_image_url,
+                'Child', category_children_full(t.category_id),
+                'MobileIconUrl', t.mobile_icon_url,
+                'Description', t.description
+            )
+        ORDER BY t.display_order, t.category_id), '[]'::json
+    ) INTO res
+    FROM tree t;
 
-  RETURN res;
+    RETURN res;
 END;
 $$;
 
-
+-- View using the fixed function
 CREATE OR REPLACE VIEW public_view_category_tree AS
-WITH RECURSIVE category_hierarchy AS (
-
-    SELECT 
-        category_id,
-        category_uuid,
-        category_slug,
-        category_name,
-        image_url,
-        parent_id,
-        depth,
-        display_order,
-        is_hidden,
-        status,
-        path_slugs,
-        path_names,
-        path_ids,
-        count_products,
-        icon_url,
-        image_alt_text,
-        icon_alt_text,
-        mobile_image_url,
-        mobile_icon_url,
-        description
-    FROM product_categories
-    WHERE parent_id IS NULL
-      AND status = 'active'
-      AND deleted_at IS NULL
-
-    UNION ALL
-
-    -- Recursive case: children
-    SELECT 
-        pc.category_id,
-        pc.category_uuid,
-        pc.category_slug,
-        pc.category_name,
-        pc.image_url,
-        pc.parent_id,
-        pc.depth,
-        pc.display_order,
-        pc.is_hidden,
-        pc.status,
-        pc.path_slugs,
-        pc.path_names,
-        pc.path_ids,
-        pc.count_products,
-        pc.icon_url,
-        pc.image_alt_text,
-        pc.icon_alt_text,
-        pc.mobile_image_url,
-        pc.mobile_icon_url,
-        pc.description
-    FROM product_categories pc
-    INNER JOIN category_hierarchy ch 
-        ON pc.parent_id = ch.category_id
-    WHERE pc.status = 'active'
-      AND pc.deleted_at IS NULL
-)
-SELECT 
-    ch.category_id        AS "CategoryId",
-    ch.category_uuid      AS "CategoryUuid",
-    ch.category_slug      AS "CategorySlug",
-    ch.category_name      AS "CategoryName",
-    ch.image_url          AS "ImageUrl",
-    ch.parent_id          AS "ParentId",
-    ch.depth              AS "Depth",
-    ch.display_order      AS "DisplayOrder",
-    ch.is_hidden          AS "IsHidden",
-    ch.status             AS "Status",
-    ch.path_slugs         AS "PathSlugs",
-    ch.path_names         AS "PathNames",
-    ch.path_ids           AS "PathIds",
-    ch.count_products     AS "CountProducts",
-    ch.icon_url           AS "IconUrl",
-    ch.image_alt_text     AS "ImageAltText",
-    ch.icon_alt_text      AS "IconAltText",
-    ch.mobile_image_url   AS "MobileImageUrl",
-    ch.mobile_icon_url    AS "MobileIconUrl",
-    ch.description        AS "Description",
-    jsonb_build_object(
-      'CategoryId', ch.category_id,
-      'CategoryUuid', ch.category_uuid,
-      'CategoryName', ch.category_name,
-      'CategorySlug', ch.category_slug,
-      'ImageUrl', ch.image_url,
-      'ParentId', ch.parent_id,
-      'Depth', ch.depth,
-      'DisplayOrder', ch.display_order,
-      'IsHidden', ch.is_hidden,
-      'Status', ch.status,
-      'PathSlugs', ch.path_slugs,
-      'PathNames', ch.path_names,
-      'PathIds', ch.path_ids,
-      'CountProducts', ch.count_products,
-      'IconUrl', ch.icon_url,
-      'ImageAltText', ch.image_alt_text,
-      'IconAltText', ch.icon_alt_text,
-      'MobileImageUrl', ch.mobile_image_url,
-      'MobileIconUrl', ch.mobile_icon_url,
-      'Description', ch.description,
-      'Child', category_children(ch.category_id)
+SELECT
+    pc.category_uuid    AS "CategoryUuid",
+    pc.category_name    AS "CategoryName",
+    pc.category_slug    AS "CategorySlug",
+    pc.image_url        AS "ImageUrl",
+    pc.parent_id        AS "ParentId",
+    pc.depth            AS "Depth",
+    pc.display_order    AS "DisplayOrder",
+    pc.is_hidden        AS "IsHidden",
+    pc.status           AS "Status",
+    pc.path_slugs       AS "PathSlugs",
+    pc.path_names       AS "PathNames",
+    pc.count_products   AS "CountProducts",
+    pc.icon_url         AS "IconUrl",
+    pc.image_alt_text   AS "ImageAltText",
+    pc.icon_alt_text    AS "IconAltText",
+    pc.mobile_image_url AS "MobileImageUrl",
+    pc.mobile_icon_url  AS "MobileIconUrl",
+    pc.description      AS "Description",
+    json_build_object(
+        'CategoryUuid', pc.category_uuid,
+        'CategoryName', pc.category_name,
+        'CategorySlug', pc.category_slug,
+        'ImageUrl', pc.image_url,
+        'Depth', pc.depth,
+        'DisplayOrder', pc.display_order,
+        'IsHidden', pc.is_hidden,
+        'Status', pc.status,
+        'PathSlugs', pc.path_slugs,
+        'PathNames', pc.path_names,
+        'CountProducts', pc.count_products,
+        'IconUrl', pc.icon_url,
+        'ImageAltText', pc.image_alt_text,
+        'IconAltText', pc.icon_alt_text,
+        'MobileImageUrl', pc.mobile_image_url,
+        'MobileIconUrl', pc.mobile_icon_url,
+        'Description', pc.description,
+        'Child', category_children_full(pc.category_id)
     ) AS "TreeInfo"
-FROM category_hierarchy ch
-ORDER BY ch.category_id;
+FROM product_categories pc
+WHERE pc.status = 'active'
+  AND pc.deleted_at IS NULL
+ORDER BY pc.display_order, pc.category_id;
