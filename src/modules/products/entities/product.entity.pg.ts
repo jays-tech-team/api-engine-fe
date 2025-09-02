@@ -18,6 +18,9 @@ export class ProductListView {
   SalePrice!: number | null;
 
   @ViewColumn()
+  FinalPrice!: number | null;
+
+  @ViewColumn()
   IsFeatured!: boolean;
 
   @ViewColumn()
@@ -37,6 +40,9 @@ export class ProductListView {
 
   @ViewColumn()
   CategoryName!: string;
+
+  @ViewColumn()
+  CategoryUuid!: string;
 
   @ViewColumn()
   CategorySlug!: string;
