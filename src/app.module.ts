@@ -6,6 +6,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { ProductsModule } from './modules/products/products.module';
 import { databaseConfig } from './config/database.config';
 
 @Module({
@@ -20,6 +21,7 @@ import { databaseConfig } from './config/database.config';
       name: 'mongo',
     }),
     CategoriesModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [
