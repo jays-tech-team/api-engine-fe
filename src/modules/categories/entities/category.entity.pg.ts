@@ -1,7 +1,6 @@
 import { ViewEntity, ViewColumn } from 'typeorm';
-
-@ViewEntity({ name: 'public_view_product_categories' })
-export class ProductCategoryView {
+@ViewEntity({ name: 'public_view_category_tree' })
+export class CategoryTreeView {
   @ViewColumn()
   CategoryUuid!: string;
 
@@ -15,19 +14,13 @@ export class ProductCategoryView {
   ImageUrl!: string | null;
 
   @ViewColumn()
+  Depth!: number;
+
+  @ViewColumn()
   DisplayOrder!: number;
 
   @ViewColumn()
-  CountProducts!: number;
-
-  @ViewColumn()
   IsHidden!: boolean;
-
-  @ViewColumn({ name: 'ParentId' })
-  ParentId!: string | null;
-
-  @ViewColumn({ name: 'Depth' })
-  Depth!: number;
 
   @ViewColumn()
   Status!: string;
@@ -39,7 +32,7 @@ export class ProductCategoryView {
   PathNames!: string | null;
 
   @ViewColumn()
-  PathIds!: string | null;
+  CountProducts!: number;
 
   @ViewColumn()
   IconUrl!: string | null;
@@ -60,5 +53,5 @@ export class ProductCategoryView {
   Description!: string | null;
 
   @ViewColumn()
-  ParentUuid!: string | null;
+  TreeInfo!: any;
 }

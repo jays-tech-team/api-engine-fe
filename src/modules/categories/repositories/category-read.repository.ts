@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ProductCategoryView } from '../entities/category.entity.pg';
+import { CategoryTreeView } from '../entities/category.entity.pg';
 import { CategoryFilterDto } from '../dto/category-filter.dto';
 
 @Injectable()
 export class CategoryReadRepository {
   constructor(
-    @InjectRepository(ProductCategoryView)
-    private repo: Repository<ProductCategoryView>,
+    @InjectRepository(CategoryTreeView)
+    private repo: Repository<CategoryTreeView>,
   ) {}
 
-  async findAllVisible(): Promise<ProductCategoryView[]> {
+  async findAllVisible(): Promise<CategoryTreeView[]> {
     return this.repo.find({
       where: { IsHidden: false },
       order: { DisplayOrder: 'ASC' },
@@ -23,9 +23,12 @@ export class CategoryReadRepository {
 
     qb.where('c."IsHidden" = :hidden', { hidden: false });
 
-    if (filter.parent_uuid) {
-      qb.andWhere('c."ParentUuid" = :parent_uuid', {
-        parent_uuid: filter.parent_uuid,
+    if (
+      typeof filter.parent_id === 'number' &&
+      Number.isFinite(filter.parent_id)
+    ) {
+      qb.andWhere('c."ParentId" = :parent_id', {
+        parent_id: Number(filter.parent_id),
       });
     }
 
@@ -37,10 +40,13 @@ export class CategoryReadRepository {
 
     qb.orderBy('c."DisplayOrder"', 'ASC');
 
+    // total count before pagination
+    const total: number = await qb.getCount();
+
     // pagination
     qb.skip((page - 1) * limit).take(limit);
 
-    const [data, total] = await qb.getManyAndCount();
+    const data: CategoryTreeView[] = await qb.getMany();
 
     return {
       data,

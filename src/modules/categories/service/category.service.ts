@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CategoryReadRepository } from '../repositories/category-read.repository';
-import { ProductCategoryView } from '../entities/category.entity.pg';
+import { CategoryTreeView } from '../entities/category.entity.pg';
 import { CategoryFilterDto } from '../dto/category-filter.dto';
 
 export interface PaginatedResult<T> {
@@ -19,13 +19,13 @@ export class CategoryService {
     private readonly categoryReadRepository: CategoryReadRepository,
   ) {}
 
-  async getAllVisibleCategories(): Promise<ProductCategoryView[]> {
+  async getAllVisibleCategories(): Promise<CategoryTreeView[]> {
     return this.categoryReadRepository.findAllVisible();
   }
 
   async getVisibleCategories(
     filter: CategoryFilterDto,
-  ): Promise<PaginatedResult<ProductCategoryView>> {
+  ): Promise<PaginatedResult<CategoryTreeView>> {
     const page = filter.page ?? 1;
     const limit = filter.limit ?? 10;
     return this.categoryReadRepository.findVisibleFiltered(filter, page, limit);

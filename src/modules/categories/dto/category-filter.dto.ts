@@ -1,10 +1,12 @@
 import { Transform } from 'class-transformer';
-import { IsOptional, IsString, IsInt, Min, IsUUID } from 'class-validator';
+import { IsOptional, IsString, IsInt, Min } from 'class-validator';
 
 export class CategoryFilterDto {
   @IsOptional()
-  @IsUUID()
-  parent_uuid?: string;
+  @Transform(({ value }) => (value !== undefined ? parseInt(value) : undefined))
+  @IsInt()
+  @Min(0)
+  parent_id?: number;
 
   @IsOptional()
   @IsString()
