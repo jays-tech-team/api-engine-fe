@@ -73,4 +73,7 @@ export class ProductListView {
 
   @ViewColumn()
   CategoryDescription!: string | null;
+
+  @ViewColumn()
+  Translations!: any;
 }
