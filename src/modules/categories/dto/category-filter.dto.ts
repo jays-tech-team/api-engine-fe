@@ -3,14 +3,8 @@ import { IsOptional, IsString, IsInt, Min } from 'class-validator';
 
 export class CategoryFilterDto {
   @IsOptional()
-  @Transform(({ value }) => (value !== undefined ? parseInt(value) : undefined))
-  @IsInt()
-  @Min(0)
-  parent_id?: number;
-
-  @IsOptional()
   @IsString()
-  q?: string;
+  slug?: string;
 
   @IsOptional()
   @Transform(({ value }) => (value !== undefined ? parseInt(value) : undefined))
