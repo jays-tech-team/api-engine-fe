@@ -5,7 +5,8 @@ import { APP_PIPE } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ExampleModule } from './modules/example/example.module';
+import { CategoriesModule } from './modules/categories/categories.module';
+import { ProductsModule } from './modules/products/products.module';
 import { databaseConfig } from './config/database.config';
 
 @Module({
@@ -19,7 +20,8 @@ import { databaseConfig } from './config/database.config';
       ...databaseConfig().read_mongo,
       name: 'mongo',
     }),
-    ExampleModule,
+    CategoriesModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [

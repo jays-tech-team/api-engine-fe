@@ -23,12 +23,34 @@ export class TransformInterceptor<T>
     next: CallHandler,
   ): Observable<Response<T>> {
     return next.handle().pipe(
-      map((data) => ({
-        success: true,
-        message: 'Operation completed successfully',
-        data,
-        timestamp: new Date().toISOString(),
-      })),
+      map((payload) => {
+        // If handler returns { data, meta[, info] }, nest under data: { items, meta[, info] }
+        if (
+          payload &&
+          typeof payload === 'object' &&
+          'data' in payload &&
+          'meta' in payload
+        ) {
+          const { data, meta, CategoryData } = payload as {
+            data: unknown;
+            meta: unknown;
+            CategoryData?: unknown;
+          };
+          return {
+            success: true,
+            message: 'Operation completed successfully',
+            data: { ...(CategoryData !== undefined ? { CategoryData } : {}), items: data, meta } as unknown as T,
+            timestamp: new Date().toISOString(),
+          } as Response<T>;
+        }
+
+        return {
+          success: true,
+          message: 'Operation completed successfully',
+          data: payload as T,
+          timestamp: new Date().toISOString(),
+        } as Response<T>;
+      }),
     );
   }
 }
