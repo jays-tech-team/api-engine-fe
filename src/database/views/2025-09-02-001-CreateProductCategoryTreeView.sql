@@ -1,6 +1,6 @@
 -- Drop existing function and view if any
-DROP FUNCTION IF EXISTS category_children_full(integer);
 DROP VIEW IF EXISTS public_view_category_tree;
+DROP FUNCTION IF EXISTS category_children_full(integer);
 
 -- Recursive function using CTE to guarantee ordering
 CREATE OR REPLACE FUNCTION category_children_full(p_parent_id integer)
@@ -56,9 +56,9 @@ BEGIN
                 'ImageAltText', t.image_alt_text,
                 'IconAltText', t.icon_alt_text,
                 'MobileImageUrl', t.mobile_image_url,
-                'Child', category_children_full(t.category_id),
                 'MobileIconUrl', t.mobile_icon_url,
-                'Description', t.description
+                'Description', t.description,
+                'Child', category_children_full(t.category_id)
             )
         ORDER BY t.display_order, t.category_id), '[]'::json
     ) INTO res
@@ -90,24 +90,7 @@ SELECT
     pc.mobile_icon_url  AS "MobileIconUrl",
     pc.description      AS "Description",
     json_build_object(
-        'CategoryUuid', pc.category_uuid,
-        'CategoryName', pc.category_name,
-        'CategorySlug', pc.category_slug,
-        'ImageUrl', pc.image_url,
-        'Depth', pc.depth,
-        'DisplayOrder', pc.display_order,
-        'IsHidden', pc.is_hidden,
-        'Status', pc.status,
-        'PathSlugs', pc.path_slugs,
-        'PathNames', pc.path_names,
-        'CountProducts', pc.count_products,
-        'IconUrl', pc.icon_url,
-        'ImageAltText', pc.image_alt_text,
-        'IconAltText', pc.icon_alt_text,
-        'MobileImageUrl', pc.mobile_image_url,
-        'MobileIconUrl', pc.mobile_icon_url,
-        'Description', pc.description,
-        'Child', category_children_full(pc.category_id)
+      'Child', category_children_full(pc.category_id)
     ) AS "TreeInfo"
 FROM product_categories pc
 WHERE pc.status = 'active'
