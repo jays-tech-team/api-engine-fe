@@ -23,20 +23,16 @@ export class CategoryReadRepository {
 
     qb.where('c."IsHidden" = :hidden', { hidden: false });
 
-    if (
-      typeof filter.parent_id === 'number' &&
-      Number.isFinite(filter.parent_id)
-    ) {
-      qb.andWhere('c."ParentId" = :parent_id', {
-        parent_id: Number(filter.parent_id),
+    if (typeof filter.slug === 'string') {
+      qb.andWhere('c."CategorySlug" = :slug', {
+        slug: String(filter.slug),
       });
     }
-
-    if (filter.q) {
-      qb.andWhere('(c."CategoryName" ILIKE :q OR c."CategorySlug" ILIKE :q)', {
-        q: `%${filter.q}%`,
-      });
-    }
+    // if (filter.q) {
+    //   qb.andWhere('(c."CategoryName" ILIKE :q OR c."CategorySlug" ILIKE :q)', {
+    //     q: `%${filter.q}%`,
+    //   });
+    // }
 
     qb.orderBy('c."DisplayOrder"', 'ASC');
 
