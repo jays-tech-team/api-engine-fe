@@ -1,7 +1,8 @@
 DROP VIEW IF EXISTS public_view_products_listing_page;
+
 CREATE OR REPLACE VIEW public_view_products_listing_page AS
 SELECT 
-	p.product_uuid AS "ProductUuid",
+    p.product_uuid AS "ProductUuid",
     p.product_name AS "ProductName",
     p.product_slug AS "ProductSlug",
     p.regular_price AS "RegularPrice",
@@ -26,5 +27,14 @@ SELECT
     pc.mobile_icon_url AS "CategoryMobileIconUrl",
     pc.description AS "CategoryDescription"
 FROM products p
-INNER JOIN product_categories pc ON p.category_id = pc.category_id
-WHERE p.status = 'active' AND p.is_visible = TRUE AND p.is_backorder = FALSE AND p.deleted_at IS NULL AND pc.deleted_at IS NULL;
+JOIN product_categories pc_leaf 
+    ON p.category_id = pc_leaf.category_id
+JOIN LATERAL unnest(string_to_array(pc_leaf.path_ids, ',')) AS cat_id_str(cat_id_text)
+    ON TRUE
+JOIN product_categories pc
+    ON pc.category_id = cat_id_str.cat_id_text::INT
+WHERE p.status = 'active' 
+  AND p.is_visible = TRUE 
+  AND p.is_backorder = FALSE 
+  AND p.deleted_at IS NULL 
+  AND pc.deleted_at IS NULL;
