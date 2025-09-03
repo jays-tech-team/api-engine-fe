@@ -1,6 +1,6 @@
 -- Drop existing function and view if any
-DROP FUNCTION IF EXISTS category_children_full(integer);
 DROP VIEW IF EXISTS public_view_category_tree;
+DROP FUNCTION IF EXISTS category_children_full(integer);
 
 -- Recursive function using CTE to guarantee ordering
 CREATE OR REPLACE FUNCTION category_children_full(p_parent_id integer)
