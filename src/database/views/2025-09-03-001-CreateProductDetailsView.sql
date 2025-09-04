@@ -148,7 +148,18 @@ SELECT
     p.product_uuid AS "ProductUuid",
     p.product_name AS "ProductName",
     p.product_slug AS "ProductSlug",
+    p.sku AS "SKU",
     p.description AS "Description",
+    p.regular_price AS "RegularPrice",
+    p.sale_price AS "SalePrice",
+    p.regular_price_without_vat AS "RegularPriceWithoutVat",
+    p.sale_price_without_vat AS "SalePriceWithoutVat",
+    p.vat_percentage AS "VatPercentage",
+    p.is_backorder AS "IsBackorder",
+    p.has_shipping_fee AS "HasShippingFee",
+    p.has_express_delivery AS "HasExpressDelivery",
+    p.product_image_url AS "ProductImageUrl",
+    p.has_variations AS "HasVariations",
     pd.ingredients AS "Ingredients",
     pd.allergens AS "Allergens",
     pd.delivery_info AS "DeliveryInfo",
@@ -159,7 +170,7 @@ SELECT
     attr.attributes AS "Attributes",
     var.variations AS "Variations",
     vattrs.variation_attributes AS "VariationAttributes",
-    -- Translations including product fields + categories + attributes
+    -- Translations only for text/details + categories + attributes + variations
     jsonb_build_object(
         'ae-ar', jsonb_build_object(
             'ProductName', COALESCE(pt.translations->'ae-ar'->>'ProductName', p.product_name),

@@ -12,6 +12,39 @@ export class ProductDetailsView {
   ProductSlug!: string;
 
   @ViewColumn()
+  SKU!: string | null;
+
+  @ViewColumn()
+  RegularPrice!: number | null;
+
+  @ViewColumn()
+  SalePrice!: number | null;
+
+  @ViewColumn()
+  RegularPriceWithoutVat!: number | null;
+
+  @ViewColumn()
+  SalePriceWithoutVat!: number | null;
+
+  @ViewColumn()
+  VatPercentage!: number | null;
+
+  @ViewColumn()
+  IsBackorder!: boolean;
+
+  @ViewColumn()
+  HasShippingFee!: boolean;
+
+  @ViewColumn()
+  HasExpressDelivery!: boolean;
+
+  @ViewColumn()
+  ProductImageUrl!: string | null;
+
+  @ViewColumn()
+  HasVariations!: boolean;
+
+  @ViewColumn()
   Description!: string | null;
 
   @ViewColumn()
